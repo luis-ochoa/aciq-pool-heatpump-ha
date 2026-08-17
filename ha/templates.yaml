@@ -1,0 +1,25 @@
+# Mode-proof water temperature (°F). In °F display mode the unit publishes
+# dp3 in °F while tuya-local still interprets it as °C, so the climate
+# entity's current_temperature turns to poison (~199 °F). Detector: the
+# climate min_temp attribute is a limit constant — ≤59 °F when the device is
+# in °C mode, ≥111 °F when dp108's °F-space value gets °C-interpreted; 90
+# splits cleanly in every hvac mode. Above 90 ⇒ invert HA's °C→°F conversion
+# to recover the true °F. Correct in both display modes.
+#
+# Caveat (see FIRMWARE-NOTES.md): the dp3 probe sits at the heat exchanger —
+# this sensor equals true pool water temp only while the compressor idles.
+- sensor:
+    - name: "Pool Heater Water Temp"
+      unique_id: "sensor.pool_heater_water_temp"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      state_class: measurement
+      availability: >
+        {{ state_attr('climate.pool_heater', 'current_temperature') is not none }}
+      state: >
+        {% set t = state_attr('climate.pool_heater', 'current_temperature') | float(0) %}
+        {% set f_mode = (state_attr('climate.pool_heater', 'min_temp') | float(0)) > 90 %}
+        {{ ((t - 32) / 1.8) | round(1) if f_mode else t | round(1) }}
+      attributes:
+        uom_mode: >-
+          {{ 'F' if (state_attr('climate.pool_heater', 'min_temp') | float(0)) > 90 else 'C' }}

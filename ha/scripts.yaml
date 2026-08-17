@@ -1,0 +1,47 @@
+# The on-demand verify script. Replace notify.mobile_app_YOUR_PHONE with
+# your own notify service (twice). See GUIDE.md for the play-by-play.
+pool_heater_verify_setpoint:
+  alias: Pool Heater — verify setpoint
+  icon: mdi:sync-alert
+  mode: single
+  sequence:
+    - action: shell_command.pool_heater_verify
+      data:
+        f: "{{ states('input_number.pool_heater_setpoint_f') | int }}"
+    - delay: "00:00:02"
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.pool_heater_setpoint_verify
+    - delay: "00:00:02"
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: sensor.pool_heater_setpoint_verify
+              state: drift_adopted
+          sequence:
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.pool_heater_setpoint_f
+              data:
+                value: >-
+                  {{ state_attr('sensor.pool_heater_setpoint_verify', 'adopted_f') | int }}
+            - action: notify.mobile_app_YOUR_PHONE
+              data:
+                title: Pool heater setpoint adopted
+                message: >-
+                  The unit display's setpoint differed from HA — adopted
+                  {{ state_attr('sensor.pool_heater_setpoint_verify', 'adopted_f') }} °F
+                  from the display (HA intended
+                  {{ state_attr('sensor.pool_heater_setpoint_verify', 'intended_f') }} °F).
+        - conditions:
+            - condition: state
+              entity_id: sensor.pool_heater_setpoint_verify
+              state: read_failed
+          sequence:
+            - action: notify.mobile_app_YOUR_PHONE
+              data:
+                title: Pool heater verify failed
+                message: >-
+                  Setpoint verify couldn't read the unit (UOM flip or dp read
+                  failed). The intended setpoint was re-asserted anyway; run
+                  Verify again or check the heater's network.

@@ -1,0 +1,63 @@
+# The Pool Heater dashboard section (sections view, 12-column grid).
+# Adjust entity IDs if yours differ. Fault tile: this example uses the raw
+# tuya-local fault-code sensor; a latched wrapper (recommended — the raw
+# code pulses during faults) is a trigger-based template sensor exercise
+# left to taste.
+type: grid
+cards:
+  - type: heading
+    heading: Pool Heater
+    heading_style: title
+    icon: mdi:pool
+  - type: tile
+    entity: input_number.pool_heater_setpoint_f
+    name: Setpoint
+    features:
+      - type: numeric-input
+        style: buttons
+    grid_options:
+      columns: 6
+  - type: tile
+    entity: sensor.pool_heater_water_temp
+    name: Exchanger Temp
+    grid_options:
+      columns: 6
+  - type: tile
+    entity: climate.pool_heater
+    name: Mode
+    state_content:
+      - state
+    features:
+      - type: climate-hvac-modes
+      - type: climate-preset-modes
+        style: dropdown
+    grid_options:
+      columns: 12
+  - type: tile
+    entity: sensor.pool_heater_fault_code
+    name: Fault
+    grid_options:
+      columns: 6
+  - type: tile
+    entity: sensor.pool_heater_running_percentage
+    name: Running
+    grid_options:
+      columns: 6
+  - type: tile
+    entity: sensor.pool_heater_setpoint_verify
+    name: Last Verify
+    state_content:
+      - state
+      - last_updated
+    grid_options:
+      columns: 6
+  - type: button
+    entity: script.pool_heater_verify_setpoint
+    name: Verify Setpoint
+    icon: mdi:sync-alert
+    show_state: false
+    tap_action:
+      action: toggle
+    grid_options:
+      columns: 6
+      rows: 2

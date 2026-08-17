@@ -1,0 +1,30 @@
+# Merge into configuration.yaml — the °F keeper's write path and verdict
+# sensor. See GUIDE.md.
+
+shell_command:
+  pool_heater_set_f: "python3 /config/tuya_bridge/heater_bridge.py set_f {{ f | int }}"
+  pool_heater_verify: "python3 /config/tuya_bridge/heater_bridge.py verify {{ f | int }}"
+  pool_heater_flip_uom: "python3 /config/tuya_bridge/heater_bridge.py flip {{ uom }}"
+
+# Surfaces the bridge's last verify verdict as an entity. Refreshed on demand
+# by the verify script; hourly scan is only a fallback.
+command_line:
+  - sensor:
+      name: Pool Heater Setpoint Verify
+      unique_id: pool_heater_setpoint_verify
+      command: "cat /config/tuya_bridge/last_verify.json 2>/dev/null || echo '{}'"
+      value_template: "{{ value_json.result | default('never_run') }}"
+      json_attributes:
+        - checked_at
+        - intended_f
+        - published_c
+        - in_sync
+        - adopted_f
+      scan_interval: 3600
+
+# Optional but recommended: the tuya-local fault-code sensor pulses during
+# faults (device behavior); keep the raw mirror out of history/logbook.
+recorder:
+  exclude:
+    entities:
+      - sensor.pool_heater_fault_code

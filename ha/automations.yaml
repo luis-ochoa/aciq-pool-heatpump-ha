@@ -1,0 +1,41 @@
+# The keeper's two automations. Add them however your install loads
+# automations (automations.yaml, an !include_dir, or paste via the UI's
+# YAML editor). See GUIDE.md.
+
+- id: pool_heater_setpoint_writer
+  alias: Pool Heater — push °F setpoint to unit
+  description: >-
+    Writes the keeper input_number raw into dp2 whenever it changes (the unit
+    in °F display mode interprets dp2 writes as integer °F). Also re-asserts
+    on HA start in case the unit power-cycled while HA was down. mode:restart
+    + the short delay debounce rapid +/- taps into one write.
+  mode: restart
+  triggers:
+    - trigger: state
+      entity_id: input_number.pool_heater_setpoint_f
+      not_from:
+        - unknown
+        - unavailable
+    - trigger: homeassistant
+      event: start
+  actions:
+    - delay: "00:00:02"
+    - action: shell_command.pool_heater_set_f
+      data:
+        f: "{{ states('input_number.pool_heater_setpoint_f') | int }}"
+
+- id: pool_heater_setpoint_verify_schedule
+  alias: Pool Heater — scheduled setpoint verify
+  description: >-
+    Closed-loop verify a few times a day, ideally inside your pump window
+    (wall-display edits happen when someone is at the pool). The unit
+    display blinks °C for ~10 s each run.
+  mode: single
+  triggers:
+    - trigger: time
+      at:
+        - "12:00:00"
+        - "15:00:00"
+        - "18:00:00"
+  actions:
+    - action: script.pool_heater_verify_setpoint
