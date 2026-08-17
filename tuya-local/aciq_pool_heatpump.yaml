@@ -1,0 +1,160 @@
+# ACiQ inverter pool heat/cool pump ("ASL-OTA" wire controller, category qn,
+# protocol 3.4). Same mode vocabulary as aquark_heatpump (warm/cool/smart).
+# All findings below are hardware-verified on a live unit.
+#
+# dp3 is the water temperature as the module publishes it. The probe sits at
+# the heat exchanger: with the compressor idle it equals the inlet/pool water
+# temp, but under load it heat-soaks toward (and in cooling can read below)
+# the outlet stream. The display's own inlet/outlet readings come from
+# separate probes that are not published on any DP.
+# dp108/109 (min/max setpoint limits) are MODE-DEPENDENT and pushed live by
+# the firmware: cool 7-35, warm 15-40, auto 7-40 (deg C) — hence the
+# min_temperature/max_temperature mappings below.
+# dp12 ("Current Power") is static and meaningless on this firmware (25688,
+# with brief flickers to arbitrary values at state transitions); exposed as a
+# diagnostic sensor only. dp102 (labelled "Malfunction 2" in the app) is
+# really a heating-mode flag — verified across the full mode x gear matrix:
+# mode cool -> "0", mode warm or smart(auto) -> "1", gear irrelevant.
+# dp105 (compressor output %) can exceed 100 in booster gear (103 observed).
+# dp111 is the app's untranslated "dp_super_mode"; function unobserved
+# (always 0 so far), exposed as a diagnostic sensor.
+# dp13 (temp unit c/f) is WRITE-ONLY: it never appears in status reports (so
+# it looks dead), but writing 'c'/'f' switches the whole unit's scale, wall
+# display included. F display mode is a firmware trap for integrations:
+# dp3/108/109 rescale to F, dp2 *writes* are interpreted as F integers, but
+# dp2 *reads* break (display setpoint edits are never published and the
+# module caches stale values). This config therefore assumes C — the only
+# mode with coherent reads. A full DP sweep (updatedps over 1-255) surfaced
+# nothing further: this is the module's complete vocabulary.
+# dp21 (fault bitfield) is exposed as a Fault code enum sensor mirroring the
+# code on the unit's own display, rather than the class-problem binary_sensor
+# pattern - the enum carries strictly more information for this device.
+# dp21 fault bitfield: E3 (no water flow) = 4, captured from a live E3 event;
+# the firmware pulses the code (4 <-> 0 every ~4 s) while it retries, and
+# re-tests flow on a ~240 s cycle (expect ~55 s quiet windows during a
+# standing fault; a solid flow-switch closure clears instantly). Other E-code
+# bits follow the E1..E8 = bits 0..7 ordering implied by that anchor (and by
+# aquark, same OEM, which also uses 4 for water flow). P/F codes beyond bit 7
+# report as the raw value.
+name: Pool heat pump
+products:
+  - id: 6cah7zdoj507nsz5
+    manufacturer: ACiQ
+    model: Inverter Pool Heat/Cool Pump
+entities:
+  - entity: climate
+    translation_key: pool_heatpump
+    dps:
+      - id: 1
+        type: boolean
+        name: hvac_mode
+        mapping:
+          - dps_val: false
+            value: "off"
+          - dps_val: true
+            constraint: mode
+            conditions:
+              - dps_val: warm
+                value: heat
+              - dps_val: cool
+                value: cool
+              - dps_val: smart
+                value: heat_cool
+      - id: 2
+        type: integer
+        name: temperature
+        range:
+          min: 7
+          max: 40
+      - id: 3
+        type: integer
+        name: current_temperature
+      - id: 4
+        type: string
+        name: mode
+        hidden: true
+      - id: 5
+        type: string
+        name: preset_mode
+        mapping:
+          - dps_val: silence
+            value: quiet
+          - dps_val: smart
+            value: smart
+          - dps_val: booster
+            value: quick
+      - id: 108
+        type: integer
+        name: min_temperature
+      - id: 109
+        type: integer
+        name: max_temperature
+  - entity: sensor
+    name: Running percentage
+    icon: "mdi:speedometer"
+    category: diagnostic
+    dps:
+      - id: 105
+        type: integer
+        name: sensor
+        unit: "%"
+        class: measurement
+  - entity: sensor
+    class: power
+    category: diagnostic
+    dps:
+      - id: 12
+        type: integer
+        name: sensor
+        unit: kW
+        class: measurement
+        mapping:
+          - scale: 1000
+  - entity: binary_sensor
+    name: Heating enabled
+    icon: "mdi:fire"
+    category: diagnostic
+    dps:
+      - id: 102
+        type: string
+        name: sensor
+        mapping:
+          - dps_val: "1"
+            value: true
+          - value: false
+  - entity: sensor
+    name: Super mode
+    icon: "mdi:help-circle-outline"
+    category: diagnostic
+    dps:
+      - id: 111
+        type: integer
+        name: sensor
+  - entity: sensor
+    name: Fault code
+    class: enum
+    icon: "mdi:alert-circle-outline"
+    category: diagnostic
+    dps:
+      - id: 21
+        type: bitfield
+        name: sensor
+        mapping:
+          - dps_val: 0
+            value: "OK"
+          - dps_val: 1
+            value: E1
+          - dps_val: 2
+            value: E2
+          - dps_val: 4
+            value: E3
+          - dps_val: 8
+            value: E4
+          - dps_val: 16
+            value: E5
+          - dps_val: 32
+            value: E6
+          - dps_val: 64
+            value: E7
+          - dps_val: 128
+            value: E8

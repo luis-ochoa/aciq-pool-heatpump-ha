@@ -1,8 +1,7 @@
 # The Pool Heater dashboard section (sections view, 12-column grid).
-# Adjust entity IDs if yours differ. Fault tile: this example uses the raw
-# tuya-local fault-code sensor; a latched wrapper (recommended — the raw
-# code pulses during faults) is a trigger-based template sensor exercise
-# left to taste.
+# Adjust entity IDs if yours differ. The Fault tile uses the latched
+# sensor.pool_heater_fault from ha/templates.yaml (the raw tuya-local
+# fault-code sensor pulses during faults; the latched wrapper doesn't).
 type: grid
 cards:
   - type: heading
@@ -34,8 +33,11 @@ cards:
     grid_options:
       columns: 12
   - type: tile
-    entity: sensor.pool_heater_fault_code
+    entity: sensor.pool_heater_fault
     name: Fault
+    state_content:
+      - state
+      - description
     grid_options:
       columns: 6
   - type: tile

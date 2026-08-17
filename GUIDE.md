@@ -30,9 +30,10 @@ in °C and the plain tuya-local climate entity is fully coherent.
 
 ## Install
 
-1. **Device config**: the unit must be on tuya-local with the
-   `aciq_pool_heatpump.yaml` device config (see README). Keep the °C
-   config — do NOT modify it for °F; the keeper handles everything.
+1. **Device config**: the unit must be on tuya-local with the included
+   device config — [SETUP.md](SETUP.md) covers that end to end, local key
+   included. Keep the °C config — do NOT modify it for °F; the keeper
+   handles everything.
 
 2. **Bridge**: copy [heater_bridge.py](heater_bridge.py) to
    `/config/tuya_bridge/heater_bridge.py` and vendor tinytuya next to it

@@ -23,3 +23,64 @@
       attributes:
         uom_mode: >-
           {{ 'F' if (state_attr('climate.pool_heater', 'min_temp') | float(0)) > 90 else 'C' }}
+
+# Pool heater fault — latched, noiseless. Reads like the unit's display
+# ("E3" / "OK") with the manual's description as an attribute (ACiQ EX manual
+# failure-code table). Sourced from the tuya-local Fault code sensor, which
+# pulses in step with the unit's display during a fault (~4 s cadence —
+# device behavior): this wrapper latches on the first pulse and clears only
+# after the code has read OK for a sustained 15 s, so dashboards and
+# notifications never flap. Pair with the recorder exclude in
+# configuration.yaml so the raw pulses stay out of history.
+- triggers:
+    - trigger: state
+      entity_id: sensor.pool_heater_fault_code
+      not_to: "OK"
+    - trigger: state
+      entity_id: sensor.pool_heater_fault_code
+      to: "OK"
+      for: "00:00:15"
+    - trigger: homeassistant
+      event: start
+    # evaluates once on every template reload, so the sensor never sits at
+    # "unknown" waiting for its first fault transition
+    - trigger: event
+      event_type: event_template_reloaded
+  sensor:
+    - name: "Pool Heater Fault"
+      unique_id: "sensor.pool_heater_fault"
+      icon: >-
+        {{ 'mdi:check-circle-outline' if is_state('sensor.pool_heater_fault_code', 'OK')
+           else 'mdi:alert-circle' }}
+      state: >
+        {% set cur = states('sensor.pool_heater_fault_code') %}
+        {% if cur == 'OK' %}
+          OK
+        {% elif cur not in ('unavailable', 'unknown') %}
+          {{ cur }}
+        {% elif this is defined and this.state not in ('unavailable', 'unknown', none) %}
+          {{ this.state }}
+        {% else %}
+          OK
+        {% endif %}
+      attributes:
+        description: >
+          {% set desc = {
+              'E1': 'High pressure protection',
+              'E2': 'Low pressure protection',
+              'E3': 'No water protection',
+              'E4': '3 phase sequence protection',
+              'E5': 'Power supply excesses operation range',
+              'E6': 'Excessive inlet/outlet water temp difference (insufficient water flow)',
+              'E7': 'Water outlet temp too high or too low protection',
+              'E8': 'High exhaust temp protection'} %}
+          {% set cur = states('sensor.pool_heater_fault_code') %}
+          {% if cur == 'OK' %}
+            OK
+          {% elif cur in desc %}
+            {{ desc[cur] }}
+          {% elif this is defined and this.state in desc %}
+            {{ desc[this.state] }}
+          {% else %}
+            OK
+          {% endif %}
