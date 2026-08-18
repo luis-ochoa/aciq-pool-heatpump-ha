@@ -14,7 +14,7 @@ brands, so much of this likely transfers.
 | File | What |
 |---|---|
 | [SETUP.md](SETUP.md) | Getting to local control: installing the device config, **obtaining the Tuya local key** (the hard part, with the failure table), adding the device, and the Err-914 survival note. Start here. |
-| [tuya-local/aciq_pool_heatpump.yaml](tuya-local/aciq_pool_heatpump.yaml) | The tuya-local device config (climate with heat/cool/auto + quiet/smart/quick presets, live mode-dependent slider limits, running-%, fault-code enum sensor). Submitted upstream; usable from here until it ships in a release. |
+| [tuya-local/aciq_pool_heatpump.yaml](tuya-local/aciq_pool_heatpump.yaml) | The tuya-local device config (climate with heat/cool/auto + quiet/smart/quick presets, live mode-dependent slider limits, running-%, fault-code enum sensor). **Submitted upstream as [make-all/tuya-local#5942](https://github.com/make-all/tuya-local/issues/5942)** (upstream PR creation is collaborators-only right now; a PR-ready branch sits at [luis-ochoa/tuya-local:aciq-pool-heatpump](https://github.com/luis-ochoa/tuya-local/tree/aciq-pool-heatpump)). Usable from here until it ships in a release. |
 | [FIRMWARE-NOTES.md](FIRMWARE-NOTES.md) | The full DP decode and firmware behavior: every datapoint's real meaning, the °F-mode trap, the write-only C/F register, fault bitfield + retry cycle, probe placement. |
 | [GUIDE.md](GUIDE.md) | The **°F keeper**: a complete HA-side solution for running the unit in °F display mode with 1 °F remote setpoint resolution, closed-loop verified — plus the dashboard card and its user manual. |
 | [heater_bridge.py](heater_bridge.py) | The raw-DP bridge script the keeper uses (runs on the HA host, vendored tinytuya). |
