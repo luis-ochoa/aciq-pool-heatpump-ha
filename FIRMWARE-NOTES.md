@@ -76,3 +76,24 @@ is purely in what the Tuya module reports.
 - tuya-local pins the device by IP — give it a **DHCP reservation**.
 - The module tolerates concurrent local sessions (tuya-local + a script).
 - Protocol is 3.4 (many same-brand lights are 3.5).
+
+## Why °F never reads back — the schema-firewall theory
+
+Every °F observation above unifies under one mechanism: dp2's Tuya
+product schema is **integer 7–40, °C-space**, and the WiFi module
+validates MCU→module *reports* against it, silently dropping
+out-of-range values — while module→MCU *writes* forward with little
+validation. That single rule predicts: wall °F edits never publish
+(dropped at the module); local °F writes work but never echo; the
+F→C flip publishes its result (32-ish, in-schema) while the C→F flip
+cannot (result ~90, out-of-schema); and dp3/108/109 pass °F-space
+values because their schema ranges are wider. Even Tuya's own app
+can't read the °F state — it reads the same DP table.
+
+Consequence: the °F setpoint is unreachable from software, full stop
+(the dp sweep proves no hidden DP carries it). The only paths left are
+hardware: a UART tap on the MCU↔module serial line (would prove the
+drop), or replacing the module with an ESP32 speaking the Tuya MCU
+protocol (native °F both ways, no schema firewall — at the cost of
+leaving tuya-local). The keeper in this repo is the software-side
+optimum: 1 °F writes, ±2 °F closed-loop audit.
