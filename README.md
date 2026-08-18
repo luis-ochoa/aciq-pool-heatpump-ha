@@ -32,7 +32,10 @@ Short version (long version in FIRMWARE-NOTES.md): the hardware's setpoint
 register is integer-°C in °C mode, so Fahrenheit setpoints collapse in pairs
 (91 °F and 92 °F are the same value). The display's °F mode *does* give the
 controller a real 1 °F setpoint — but in that mode the firmware never
-reports the setpoint back and mis-scales its temperature reports. The keeper
+reports the setpoint back (the module's dp2 schema is °C-range 7–40; it
+silently drops out-of-range reports while accepting out-of-range writes,
+so °F goes in and never comes back out) and mis-scales its temperature
+reports. The keeper
 makes HA the bookkeeper: HA owns the setpoint, writes it raw, and audits the
 unit through a °C-flip side door the firmware forgot to close.
 
