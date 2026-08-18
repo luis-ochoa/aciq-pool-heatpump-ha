@@ -74,12 +74,12 @@ in °C and the plain tuya-local climate entity is fully coherent.
 | Tile | What it shows / does |
 |---|---|
 | **Setpoint** | The target, in °F, 1 °F steps. **The only place to set temperature.** Lands on the heater within ~2 s. |
-| **Exchanger Temp** | dp3 corrected to true °F. The probe sits at the heat exchanger: true water temp when the compressor idles, drifts toward/below the outlet under load. "What the exchanger feels", not "what the pool is". |
+| **Heat Exchanger** | dp3 corrected to true °F. Settled behavior: at rest it relaxes to true water temp in a few minutes; under load it is an **outlet-side** reading — matches the display's outlet while heating, ~1.5 °F below it while cooling. "What's leaving the exchanger", not "what the pool is". |
 | **Mode** | Off/Cool/Heat/Auto + gear dropdown (Quiet/Smart/Quick). Safe to use. **Don't set temperature from this tile's pop-up** — its numbers are °F-poisoned; such writes are harmlessly ignored. |
 | **Fault** | Latched fault code exactly as the unit's display shows it (`OK`, `E3`, …) with the manual's description. Latches on the first pulse, clears 15 s after true recovery — never flickers. |
 | **Running** | Compressor output %. Quick gear legitimately exceeds 100. |
 | **Last Verify** | Latest audit result — `in_sync` / `drift_adopted` / `read_failed` — and how long ago. |
-| **Verify Setpoint** | Button; icon glows while the ~15 s audit runs. |
+| **Verify Setpoint** | Tile; tap to run the ~15 s audit (icon lights while it runs). |
 
 ## One verify, play by play
 
@@ -95,7 +95,8 @@ in °C and the plain tuya-local climate entity is fully coherent.
    tile and notifies your phone; `read_failed` notifies. `in_sync` is
    silent.
 
-The scheduled runs (default 12:00/15:00/18:00) are the same sequence.
+The scheduled runs (default: hourly on the hour — which also repairs a
+°C reversion after a power blip within the hour) are the same sequence.
 
 ## House rules
 

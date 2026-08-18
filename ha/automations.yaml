@@ -27,15 +27,13 @@
 - id: pool_heater_setpoint_verify_schedule
   alias: Pool Heater — scheduled setpoint verify
   description: >-
-    Closed-loop verify a few times a day, ideally inside your pump window
-    (wall-display edits happen when someone is at the pool). The unit
-    display blinks °C for ~10 s each run.
+    Closed-loop verify every hour on the hour. Catches wall-display edits,
+    and caps the exposure after a power blip reverts the display to °C at
+    60 min. The unit display blinks °C for ~10 s each run. Prefer fewer
+    runs? Swap in a time trigger with fixed times inside your pump window.
   mode: single
   triggers:
-    - trigger: time
-      at:
-        - "12:00:00"
-        - "15:00:00"
-        - "18:00:00"
+    - trigger: time_pattern
+      minutes: 0
   actions:
     - action: script.pool_heater_verify_setpoint

@@ -18,7 +18,7 @@ cards:
       columns: 6
   - type: tile
     entity: sensor.pool_heater_water_temp
-    name: Exchanger Temp
+    name: Heat Exchanger
     grid_options:
       columns: 6
   - type: tile
@@ -53,13 +53,16 @@ cards:
       - last_updated
     grid_options:
       columns: 6
-  - type: button
+  # A tile, not a button: button cards refuse to render at single-row
+  # height, and the tile matches the rest of the section.
+  - type: tile
     entity: script.pool_heater_verify_setpoint
     name: Verify Setpoint
     icon: mdi:sync-alert
-    show_state: false
+    hide_state: true
     tap_action:
+      action: toggle
+    icon_tap_action:
       action: toggle
     grid_options:
       columns: 6
-      rows: 2
