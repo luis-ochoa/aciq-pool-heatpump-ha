@@ -39,3 +39,9 @@ unit through a °C-flip side door the firmware forgot to close.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Credits
+
+Reverse-engineered and written with [Claude](https://claude.com)
+(Anthropic): the firmware decode, the °F keeper design, and these docs
+came out of live hardware sessions driven through Claude Code.
